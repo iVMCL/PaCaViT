@@ -1,6 +1,6 @@
 ## PaCa-ViT (CVPR'23) <br> <sub>Official PyTorch Implementation</sub>
 
-This repo contains the PyTorch version of model definitions (*Tiny, Small, Base*), training code and pre-trained weights for ImageNet-1k classification, MS-COCO object detection and instance segmentation, and MIT-ADE20k image semantic segmenation for our PaCa-ViT paper. It is refactored using PyTorch 2.0 and the latest [timm](https://github.com/huggingface/pytorch-image-models), [mmdetection 3.x](https://github.com/open-mmlab/mmdetection/tree/v3.0.0) and [mmsegmentation 1.x](https://github.com/open-mmlab/mmsegmentation/tree/v1.0.0). The trained checkpoints are converted accordingly. We thank the teams of those open-sourced packages.  
+This repo contains the PyTorch version of model definitions (*Tiny, Small, Base*), training code and pre-trained weights for ImageNet-1k classification, MS-COCO object detection and instance segmentation, and MIT-ADE20k image semantic segmenation for our PaCa-ViT paper. It is refactored using [PyTorch 2.0](https://pytorch.org/blog/pytorch-2.0-release/) and the latest [timm](https://github.com/huggingface/pytorch-image-models), [mmdetection 3.x](https://github.com/open-mmlab/mmdetection/tree/v3.0.0) and [mmsegmentation 1.x](https://github.com/open-mmlab/mmsegmentation/tree/v1.0.0). The trained checkpoints are converted accordingly. We thank the teams of those open-sourced packages.  
 
 > [**PaCa-ViT: Learning Patch-to-Cluster Attention in Vision Transformers**](https://arxiv.org/abs/2203.11987)<br>
 > Ryan Grainger, Thomas Paniagua, Xi Song, Naresh Cuntoor, Mun Wai Lee and Tianfu Wu\
@@ -41,10 +41,12 @@ We study four aspects of the PaCa module:
 </p>
 
 ## Results and Trained Models
-### ImageNet-1K (224x224) trained weights 
-
 > *(please refer to the paper for details of the settings)*
 
+- [] To leverage the efficient implementation of multi-head self-attention via the [xformers](https://github.com/facebookresearch/xformers) package, the `head dimensions` should be divisible by $32$, for which we can [change the number of heads](./models/paca_vit.py#L860) in the current archtectural settings accordingly. We have observed significantly faster training in our on-going experiments. 
+- [] We did not test the simpler linear projection based clustering module (i.e., [Linear+Softmax](./models/paca_vit.py#L128)) in our paper (in addition the convolution-based and mlp-based clustering modules), which we have preliminarily  observed is also effective using the blockwise clustering setting.
+
+### **ImageNet-1K (224x224) trained weights**
 | name | acc@1 | #params | FLOPs | model |
 |:---:|:---:|:---:| :---:|:---:|
 | PaCa-Tiny (conv) |  80.9 | 12.2M  | 3.2G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_tiny_p2cconv_100_0.pth) |
@@ -53,6 +55,59 @@ We study four aspects of the PaCa module:
 | PaCa-Small (teacher) |  83.17 | 21.1M  | 5.4G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_convmixer_small_100.pth) |
 | PaCa-Base (conv)|  83.96 | 46.9M  | 9.5G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_base_p2cconv_100_0.pth) |
 | PaCa-Base (teacher)|  84.22 | 46.7M  | 9.7G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_convmixer_base_100.pth) |
+
+We conduct some ablation studies on the number of clusters using the `PaCa-Small` architecture and `convolution-based` implementation of clustering. 
+| where | #Clusters, $M$ | acc@1 | #params | FLOPs | model |
+|:---:|:---:|:---:|:---:| :---:|:---:|
+|  stage-wise | [2,2,2,0] |  82.28 | 22.0M  | 4.7G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_small_p2cconv_2_0.pth) |
+| stage-wise | [49,49,49,0] |  82.95 | 22.0M  | 5.0G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_small_p2cconv_49_0.pth) |
+| stage-wise | [49,64,81,100] |  82.98 | 22.2M  | 5.3G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_small_p2cconv_49_100.pth) |
+| stage-wise | [100,81,64,49] |  82.87 | 22.2M  | 5.3G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_small_p2cconv_100_49.pth) |
+| stage-wise | [100,100,100,100] |  83.05 | 22.3M  | 5.6G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_small_p2cconv_100_49.pth) |
+| block-wise | [100,100,100,100] |  82.93 | 24.1M  | 6.1G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_small_p2cconv_100_blockwise.pth) |
+
+### **MS-COCO trained Mask R-CNN weights** 
+| name | #params | FLOPs | $AP^b$ | $AP_{50}^b$ | $AP_{75}^b$ | $AP^m$ | $AP_{50}^m$ | $AP_{75}^m$  | model |
+|:---:|:---:|:---:| :---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| PaCa-Tiny (conv) | 32.0 | 252 | 43.3 | 66.0 | 47.5 | 39.6 | 62.9 | 42.4| [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/mask_rcnn_pacavit_tiny_p2cconv_100_0_mstrain_480_800_1x_coco.pth)|
+| PaCa-Small (conv) | 41.8 | 296 | 46.4 | 68.7 | 50.9 | 41.8 | 65.5 | 45.0| [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/mask_rcnn_pacavit_small_p2cconv_100_0_mstrain_480_800_1x_coco.pth)|
+| PaCa-Small (mlp) | 42.4 | 303 |  46.6  | 69.0 | 51.3 | 41.9 | 65.7 | 45.0| [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/mask_rcnn_pacavit_small_p2cmlp_100_0_mstrain_480_800_1x_coco.pth)|
+| PaCa-Small (teacher) | 40.9 | 292 | 45.8 | 68.0 | 50.3 | 41.4 | 64.9 | 44.5| [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/mask_rcnn_pacavit_convmixer_tiny_100_0_mstrain_480_800_1x_coco.pth)|
+| PaCa-Base (conv) | 66.6 | 373 | 48.0 | 69.7 | 52.1 | 42.9 | 66.6 | 45.6 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/mask_rcnn_pacavit_base_p2cconv_100_0_mstrain_480_800_1x_coco.pth)|
+| PaCa-Base (teacher) | 61.4 | 372 | 48.3 | 70.5 | 52.6 | 43.3 | 67.2 | 46.6| [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/mask_rcnn_pacavit_convmixer_base_100_0_mstrain_480_800_1x_coco.pth)|
+
+For the models in the ablation studies, 
+| where | #Clusters, $M$ | #params | FLOPs | $AP^b$ | $AP_{50}^b$ | $AP_{75}^b$ | $AP^m$ | $AP_{50}^m$ | $AP_{75}^m$ | model |
+|:---:|:---:|:---:|:---:| :---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| stage-wise | [2,2,2,0] | 41.6 | 283 | 45.5 | 68.4 | 49.9 | 41.1 | 64.9 | 43.9 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/mask_rcnn_pacavit_small_p2cconv_2_0_mstrain_480_800_1x_coco.pth) |
+| stage-wise | [49,49,49,0] | 41.8 | 289 | 46.2 | 68.6 | 50.6 | 41.6 | 65.4 | 44.3 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/mask_rcnn_pacavit_small_p2cconv_49_0_mstrain_480_800_1x_coco.pth) |
+| stage-wise | [49,64,81,100] |  42.0 | 289 |46.1 |68.7|50.4 |41.5|65.3| 44.3 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/mask_rcnn_pacavit_small_p2cconv_49_100_mstrain_480_800_1x_coco.pth) |
+| stage-wise | [100,81,64,49] |  42.0 | 291 |46.1 |68.4 |50.3 |41.7 |65.4 |44.7 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/mask_rcnn_pacavit_small_p2cconv_100_49_mstrain_480_800_1x_coco.pth) |
+| stage-wise | [100,100,100,100] |  42.0 | 294 |46.4 |68.8 |51.0|41.8| 65.6| 44.6  | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/mask_rcnn_pacavit_small_p2cconv_100_mstrain_480_800_1x_coco.pth) |
+| block-wise | [100,100,100,100] |  44.0 | 304| 46.5 |68.7 |51.0| 41.8| 65.6 |45.0 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/mask_rcnn_pacavit_small_p2cconv_100_blockwise_mstrain_480_800_1x_coco.pth) |
+
+### **MIT-ADE2Ok trained weights** 
+| name | head | #params | FLOPs | mIOU (single) | model | 
+|:---:|:---:|:---:| :---:|:---:|:---:|
+|PaCa-Tiny (conv) | UperNet | 41.6 | 229.9 | 44.49 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/upernet_pacavit_tiny_p2cconv_100_0_512x512_160k_ade20k.pth) |
+|PaCa-Small (conv) | UperNet | 51.4 | 242.7 | 47.6 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/upernet_pacavit_small_p2cconv_100_0_512x512_160k_ade20k.pth) |
+|PaCa-Base (conv) | UperNet | 77.2  | 264.1 | 49.67 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/upernet_pacavit_base_p2cconv_100_0_512x512_160k_ade20k.pth) |
+|PaCa-Tiny (conv) | PaCa | 13.3 | 34.4 | 45.65 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/pacahead_pacavit_tiny_p2cconv_100_0_512x512_160k_ade20k.pth) |
+|PaCa-Small (conv) | PaCa | 23.2 | 47.2 | 48.3 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/pacahead_pacavit_small_p2cconv_100_0_512x512_160k_ade20k.pth) |
+|PaCa-Small (mlp) | PaCa | 24.0 | 50.0 | 48.2 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/pacahead_pacavit_small_p2cmlp_100_0_512x512_160k_ade20k.pth) |
+|PaCa-Small (teacher) | PaCa | 22.2 | 46.4 | 46.2 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/pacahead_pacavit_convmixer_small_100_0_512x512_160k_ade20k.pth) |
+|PaCa-Base (conv) | PaCa | 48.0 | 68.5 | 50.39 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/pacahead_pacavit_base_p2cconv_100_0_512x512_160k_ade20k.pth) |
+|PaCa-Base (teacher) | PaCa | 48.8 | 68.7 | 48.4 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/pacahead_pacavit_convmixer_base_100_0_512x512_160k_ade20k.pth) |
+
+For the models in the ablation studies, 
+| where | #Clusters, $M$ | head|  #params | FLOPs | mIOU (single) | model |
+|:---:|:---:|:---:|:---:| :---:|:---:|:---:|
+| stage-wise | [2,2,2,0] | PaCa | 23.2 | 47.2 | 47.7 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/upernet_pacavit_small_p2cconv_2_0_512x512_160k_ade20k.pth) |
+| stage-wise | [49,49,49,0] | PaCa |23.4 | 47.3 | 47.8  | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/upernet_pacavit_small_p2cconv_49_0_512x512_160k_ade20k.pth) |
+| stage-wise | [49,64,81,100] |  PaCa |23.2 | 47.2 | 48.1 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/upernet_pacavit_small_p2cconv_49_100_512x512_160k_ade20k.pth) |
+| stage-wise | [100,81,64,49] |  PaCa |23.7 | 47.3 | 47.6 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/upernet_pacavit_small_p2cconv_100_49_512x512_160k_ade20k.pth) |
+| stage-wise | [100,100,100,100] |  PaCa |23.4 | 47.3 | 48.3  | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/upernet_pacavit_small_p2cconv_100_512x512_160k_ade20k.pth) |
+| block-wise | [100,100,100,100] |  PaCa |25.8 | 50.9 | 48.0 | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/upernet_pacavit_small_p2cconv_100_blockwise_512x512_160k_ade20k.pth) |
 
 ## Installation
 We provide self-contained [installation scripts](install.sh) and [environment configurations](environment.yaml). 
@@ -114,9 +169,9 @@ We borrow from the [mmdetection 3.x](https://github.com/open-mmlab/mmdetection/t
 
 > *Data preparation*: Download [COCO 2017 datasets](https://cocodataset.org/#download) to `YOUR_COCO_PATH`. 
 
-> Add the symbolic link to the ImageNet dataset, 
+> Add the symbolic link to the MS-COCO dataset, 
 ```shell
-cd PaCaViT/datasets
+cd PaCaViT
 ln -s $YOUR_COCO_PATH ./datasets/coco
 ```
 
@@ -149,9 +204,9 @@ We borrow from the [mmsegmentation 1.x](https://github.com/open-mmlab/mmsegmenta
 
 > *Data preparation*: Download [MIT ADE2Ok 2016 dataset](https://groups.csail.mit.edu/vision/datasets/ADE20K/) to `YOUR_ADE_PATH`. 
 
-> Add the symbolic link to the ImageNet dataset, 
+> Add the symbolic link to the MIT-ADE dataset, 
 ```shell
-cd PaCaViT/datasets
+cd PaCaViT
 ln -s $YOUR_ADE_PATH ./datasets/ADEChallengeData2016
 ```
 

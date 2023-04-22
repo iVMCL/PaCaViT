@@ -47,12 +47,12 @@ We study four aspects of the PaCa module:
 
 | name | acc@1 | #params | FLOPs | model |
 |:---:|:---:|:---:| :---:|:---:|
-| PaCa-Tiny (conv) |  80.9 | 12.2M  | 3.2G | [model]() |
-| PaCa-Small (conv) |  83.08 | 22.0M  | 5.5G | [model]() |
-| PaCa-Small (mlp) |  83.13 | 22.6M  | 5.9G | [model]() |
-| PaCa-Small (teacher) |  83.17 | 21.1M  | 5.4G | [model]() |
-| PaCa-Base (conv)|  83.96 | 46.9M  | 9.5G | [model]() |
-| PaCa-Base (teacher)|  84.22 | 46.7M  | 9.7G | [model]() |
+| PaCa-Tiny (conv) |  80.9 | 12.2M  | 3.2G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_tiny_p2cconv_100_0.pth) |
+| PaCa-Small (conv) |  83.08 | 22.0M  | 5.5G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_small_p2cconv_100_0.pth) |
+| PaCa-Small (mlp) |  83.13 | 22.6M  | 5.9G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_small_p2cmlp_100_0.pth) |
+| PaCa-Small (teacher) |  83.17 | 21.1M  | 5.4G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_convmixer_small_100.pth) |
+| PaCa-Base (conv)|  83.96 | 46.9M  | 9.5G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_base_p2cconv_100_0.pth) |
+| PaCa-Base (teacher)|  84.22 | 46.7M  | 9.7G | [model](https://github.com/iVMCL/PaCaViT/releases/download/pacavit/IMNET_224_pacavit_convmixer_base_100.pth) |
 
 ## Installation
 We provide self-contained [installation scripts](install.sh) and [environment configurations](environment.yaml). 

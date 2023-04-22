@@ -119,6 +119,7 @@ private/
 external/
 datasets/
 outputs/
+pretrained-checkpoints/
 __pycache__/
 
 # Pytorch

@@ -1,0 +1,35 @@
+batch_size: 128
+train_interpolation: 'bicubic'
+epochs: 300
+opt: 'adamw'
+opt_eps: 1e-8
+opt_betas:
+  - 0.9
+  - 0.999
+momentum: 0.9
+weight_decay: 0.05
+lr_base: 5e-4 # base lr,  which will be auto-scaled: lr * batch size * nb_gpus / lr_base_size
+lr_base_size: 512
+lr_base_scale: 'linear' # linear or sqrt
+auto_scale_warmup_min_lr: True
+min_lr: 5e-6 #  which will be auto-scaled: min_lr * batch size * nb_gpus / lr_base_size
+sched: 'cosine'
+warmup_epochs: 5
+warmup_lr: 5e-7  # which will be auto-scaled: warmup_lr * batch size * nb_gpus / lr_base_size
+cooldown_epochs: 0
+amp: True
+# clip_grad: 5.0
+color_jitter: 0.4
+smoothing: 0.1
+reprob: 0.25
+remode: 'pixel'
+recount: 1
+aa: 'rand-m9-mstd0.5-inc1'
+mixup: 0.8
+cutmix: 1.0
+mixup_prob: 1.0
+mixup_switch_prob: 0.5
+mixup_mode: 'batch'
+dist_bn: '' #'reduce'
+# model_ema: True
+# model_ema_decay: 0.9999

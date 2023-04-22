@@ -1,0 +1,30 @@
+# name: pacavit
+channels:
+  - defaults
+  - pytorch
+  - nvidia
+  - xformers
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pip
+  # - cudatoolkit=11.6
+  # - pytorch=1.12.1
+  # - torchvision=0.13.1
+  - pytorch::pytorch=2.0.0
+  - pytorch::pytorch-cuda=11.7.0
+  - pytorch::torchvision=0.15.0
+  - numpy>=1.23.1
+  - fvcore
+  - xformers
+  - jupyterlab
+  - ipywidgets
+  - pip:
+    # image classification 
+    - git+https://github.com/rwightman/pytorch-image-models.git
+    # formatter
+    - black
+    # my 
+    - einops>=0.3.0
+    - torchinfo # print model summary 
+    - torchprofile # FLOPs 
